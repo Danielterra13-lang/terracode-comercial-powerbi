@@ -1,0 +1,6 @@
+id_forma_pagamento,forma_pagamento
+1,Cartão de crédito
+2,Pix
+3,Boleto parcelado
+4,Link de pagamento
+5,Recorrência mensal

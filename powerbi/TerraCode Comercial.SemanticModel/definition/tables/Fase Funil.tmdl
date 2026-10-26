@@ -1,0 +1,22 @@
+/// Fases padronizadas do funil, comparáveis entre pipelines
+table 'Fase Funil'
+	lineageTag: e52a319b-3807-4374-b77d-806e0ed6226d
+
+	column Ordem
+		dataType: int64
+		isHidden
+		lineageTag: 79a129f3-4cef-45f1-8ab9-ae0d7d2a9aee
+		summarizeBy: none
+		sourceColumn: Ordem
+
+	column Fase
+		dataType: string
+		lineageTag: eee7e6b3-2d39-4b85-8404-04a670e153d5
+		summarizeBy: none
+		sourceColumn: Fase
+		sortByColumn: Ordem
+
+	partition 'Fase Funil' = m
+		mode: import
+		source = #table(type table [Ordem = Int64.Type, #"Fase" = text], {{1, "1. Novo lead"}, {2, "2. Tentativa de contato"}, {3, "3. Contato feito"}, {4, "4. Descoberta"}, {5, "5. Negociação"}, {6, "6. Fechamento"}, {7, "7. Ganho"}})
+

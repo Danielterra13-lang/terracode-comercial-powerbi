@@ -1,0 +1,27 @@
+table 'Forma Pagamento'
+	lineageTag: 13bed097-91ff-49a5-9feb-cce326dbb8a5
+
+	column id_forma_pagamento
+		dataType: int64
+		isHidden
+		lineageTag: 8d2b30a3-cd18-4b4d-99af-4d33a7880c04
+		summarizeBy: none
+		sourceColumn: id_forma_pagamento
+
+	column 'Forma de pagamento'
+		dataType: string
+		lineageTag: ff39d17c-79f9-4197-99f9-4e2e7aea3a57
+		summarizeBy: none
+		sourceColumn: forma_pagamento
+
+	partition 'Forma Pagamento' = m
+		mode: import
+		source =
+				let
+				    Origem = Csv.Document(File.Contents(PastaDados & "dim_forma_pagamento.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Cabecalhos = Table.PromoteHeaders(Origem, [PromoteAllScalars=true]),
+				    Nulos = Table.ReplaceValue(Cabecalhos, "", null, Replacer.ReplaceValue, Table.ColumnNames(Cabecalhos)),
+				    Tipos = Table.TransformColumnTypes(Nulos, {{"id_forma_pagamento", Int64.Type}, {"forma_pagamento", type text}}, "en-US")
+				in
+				    Tipos
+

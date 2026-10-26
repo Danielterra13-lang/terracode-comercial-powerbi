@@ -1,0 +1,28 @@
+id_etapa,id_pipeline,etapa,ordem_etapa,status,fase_funil
+1,1,Novo lead,1,Em aberto,1. Novo lead
+2,1,Tentativa de contato,2,Em aberto,2. Tentativa de contato
+3,1,Contatado,3,Em aberto,3. Contato feito
+4,1,Diagnóstico,4,Em aberto,4. Descoberta
+5,1,Objeção,5,Em aberto,5. Negociação
+6,1,Fechamento,6,Em aberto,6. Fechamento
+7,1,Ganho,90,Ganho,Ganho
+8,1,Perdido,91,Perdido,Perdido
+9,1,Desqualificado,92,Perdido,Desqualificado
+10,2,Novo lead,1,Em aberto,1. Novo lead
+11,2,Tentativa de contato,2,Em aberto,2. Tentativa de contato
+12,2,Apresentação,3,Em aberto,3. Contato feito
+13,2,Follow-up,4,Em aberto,4. Descoberta
+14,2,Negociação,5,Em aberto,5. Negociação
+15,2,Fechamento,6,Em aberto,6. Fechamento
+16,2,Ganho,90,Ganho,Ganho
+17,2,Perdido,91,Perdido,Perdido
+18,2,Desqualificado,92,Perdido,Desqualificado
+19,3,Novo lead,1,Em aberto,1. Novo lead
+20,3,Tentativa de contato,2,Em aberto,2. Tentativa de contato
+21,3,Contatado,3,Em aberto,3. Contato feito
+22,3,Diagnóstico,4,Em aberto,4. Descoberta
+23,3,Objeção,5,Em aberto,5. Negociação
+24,3,Fechamento,6,Em aberto,6. Fechamento
+25,3,Ganho,90,Ganho,Ganho
+26,3,Perdido,91,Perdido,Perdido
+27,3,Desqualificado,92,Perdido,Desqualificado

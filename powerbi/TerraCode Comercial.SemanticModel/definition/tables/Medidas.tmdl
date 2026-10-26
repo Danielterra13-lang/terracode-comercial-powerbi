@@ -1,0 +1,623 @@
+table Medidas
+	lineageTag: 21ae07e9-95aa-46d7-81d8-36af2e5333f6
+
+	/// Negócios criados no período (data de criação).
+	measure Leads = COUNTROWS(Negocios)
+		formatString: #,0
+		displayFolder: 1. Volume
+		lineageTag: d00816b7-c524-4f22-8bae-af70d8747587
+
+	/// Negócios criados no período que ainda não foram fechados.
+	measure 'Em aberto' = CALCULATE(COUNTROWS(Negocios), Negocios[Status] = "Em aberto")
+		formatString: #,0
+		displayFolder: 1. Volume
+		lineageTag: 35c974ca-d0a1-41e3-831d-53d83f5cfa58
+
+	/// Negócios ganhos no período (data de fechamento).
+	measure Vendas = CALCULATE(COUNTROWS(Negocios), Negocios[Status] = "Ganho", TREATAS(VALUES(Calendario[Data]), Negocios[data_fechamento_dia]), REMOVEFILTERS(Calendario), REMOVEFILTERS('Eixo Meta'))
+		formatString: #,0
+		displayFolder: 1. Volume
+		lineageTag: ccb9b668-2687-497d-98d9-e480bb61433c
+
+	/// Negócios perdidos ou desqualificados no período (data de fechamento).
+	measure Perdidos = CALCULATE(COUNTROWS(Negocios), Negocios[Status] = "Perdido", TREATAS(VALUES(Calendario[Data]), Negocios[data_fechamento_dia]), REMOVEFILTERS(Calendario), REMOVEFILTERS('Eixo Meta'))
+		formatString: #,0
+		displayFolder: 1. Volume
+		lineageTag: 69fab615-44c8-4ddc-b79c-3a8fcde044d2
+
+	/// Valor dos negócios ganhos no período (data de fechamento).
+	measure Receita = CALCULATE(SUM(Negocios[Valor]), TREATAS(VALUES(Calendario[Data]), Negocios[data_fechamento_dia]), REMOVEFILTERS(Calendario), REMOVEFILTERS('Eixo Meta'))
+		formatString: \R\$ #,0
+		displayFolder: 2. Receita
+		lineageTag: 4608c875-6d78-4716-87c0-8a5ef86aa58c
+
+	/// Receita dividida pela quantidade de vendas.
+	measure 'Ticket médio' = DIVIDE([Receita], [Vendas])
+		formatString: \R\$ #,0
+		displayFolder: 2. Receita
+		lineageTag: 505960a5-9c00-4427-ba30-f22a26f5f113
+
+	/// Desconto médio concedido nas vendas do período.
+	measure 'Desconto médio' = CALCULATE(AVERAGE(Negocios[Desconto]), Negocios[Status] = "Ganho", TREATAS(VALUES(Calendario[Data]), Negocios[data_fechamento_dia]), REMOVEFILTERS(Calendario), REMOVEFILTERS('Eixo Meta'))
+		formatString: 0.0%
+		displayFolder: 2. Receita
+		lineageTag: 3de06b46-a571-4391-8f70-12449e1b5a1f
+
+	measure 'Receita acumulada no ano' = CALCULATE([Receita], DATESYTD(Calendario[Data]), REMOVEFILTERS('Eixo Meta'))
+		formatString: \R\$ #,0
+		displayFolder: 2. Receita
+		lineageTag: 18a82c01-577e-4a46-88b7-ee2de03ed537
+
+	/// Dos leads criados no período, quantos viraram venda (em qualquer data).
+	measure 'Vendas da coorte' = CALCULATE(COUNTROWS(Negocios), Negocios[Status] = "Ganho")
+		formatString: #,0
+		displayFolder: 3. Conversão
+		lineageTag: 9939a438-3dfa-4827-b6d3-a51577d93c90
+
+	measure 'Perdidos da coorte' = CALCULATE(COUNTROWS(Negocios), Negocios[Status] = "Perdido")
+		formatString: #,0
+		displayFolder: 3. Conversão
+		lineageTag: a3b3851d-c05c-4cba-b039-52d5ef19c506
+
+	/// Percentual dos leads criados no período que viraram venda. Meses recentes ainda têm negócios em aberto, então a taxa tende a subir.
+	measure 'Conversão da coorte' = DIVIDE([Vendas da coorte], [Leads])
+		formatString: 0.0%
+		displayFolder: 3. Conversão
+		lineageTag: bad7d915-61f1-4776-a392-5bb046ba8b09
+
+	/// Vendas fechadas no período sobre leads criados no período. Visão operacional: mistura coortes, use com cuidado.
+	measure 'Conversão do período' = DIVIDE([Vendas], [Leads])
+		formatString: 0.0%
+		displayFolder: 3. Conversão
+		lineageTag: 73fea8fe-13ea-49d6-8bdb-bebe89c6254b
+
+	/// Entre os negócios da coorte que já foram decididos, quantos foram ganhos.
+	measure 'Win rate' = DIVIDE([Vendas da coorte], [Vendas da coorte] + [Perdidos da coorte])
+		formatString: 0.0%
+		displayFolder: 3. Conversão
+		lineageTag: 442e93ab-39ff-4fcd-80e7-0f5a030cc63a
+
+	/// Mediana de dias entre criação e fechamento das vendas do período.
+	measure 'Ciclo de venda (mediana, dias)' = CALCULATE(MEDIAN(Negocios[Ciclo (dias)]), Negocios[Status] = "Ganho", TREATAS(VALUES(Calendario[Data]), Negocios[data_fechamento_dia]), REMOVEFILTERS(Calendario), REMOVEFILTERS('Eixo Meta'))
+		formatString: #,0.0
+		displayFolder: 3. Conversão
+		lineageTag: 813cbaf5-ac0b-4b5c-8148-cfe64c3a507c
+
+	/// Leads da coorte que chegaram pelo menos até a fase. Use com 'Fase Funil'[Fase] no eixo.
+	measure 'Negócios na fase' =
+			VAR _fase = MAX('Fase Funil'[Ordem])
+			RETURN
+			    IF(
+			        _fase = 7,
+			        [Vendas da coorte],
+			        CALCULATE(COUNTROWS(Negocios), Negocios[ordem_etapa_maxima] >= _fase)
+			    )
+		formatString: #,0
+		displayFolder: 3. Conversão
+		lineageTag: e6d5106f-13c8-434c-974c-761dd0be02da
+
+	measure '% do topo do funil' = DIVIDE([Negócios na fase], CALCULATE([Negócios na fase], 'Fase Funil'[Ordem] = 1, REMOVEFILTERS('Fase Funil')))
+		formatString: 0.0%
+		displayFolder: 3. Conversão
+		lineageTag: 854f7d92-eb96-4a9d-ba12-a332e31fc98f
+
+	/// Meta de receita do período.
+	measure Meta = SUM(Metas[Meta (valor)])
+		formatString: \R\$ #,0
+		displayFolder: 4. Metas
+		lineageTag: fe991f65-5b36-46d5-b0de-0bf8b82ce687
+
+	measure '% da meta' = DIVIDE([Receita], [Meta])
+		formatString: 0.0%
+		displayFolder: 4. Metas
+		lineageTag: bc3cff55-5c6f-4caa-b317-9223346ab4b5
+
+	/// Positivo: acima da meta. Negativo: quanto falta.
+	measure 'Gap da meta' = [Receita] - [Meta]
+		formatString: \R\$ #,0
+		displayFolder: 4. Metas
+		lineageTag: dcd66160-5919-4265-8700-af5755baf43c
+
+	measure 'Meta acumulada no ano' = CALCULATE([Meta], DATESYTD(Calendario[Data]), REMOVEFILTERS('Eixo Meta'))
+		formatString: \R\$ #,0
+		displayFolder: 4. Metas
+		lineageTag: a40538fa-3971-4f3f-ab30-5277ae134a44
+
+	measure '% da meta no ano' = DIVIDE([Receita acumulada no ano], [Meta acumulada no ano])
+		formatString: 0.0%
+		displayFolder: 4. Metas
+		lineageTag: dfbb07c6-c79f-4548-84a7-cadd68512f20
+
+	measure 'Receita ano anterior' = CALCULATE([Receita], SAMEPERIODLASTYEAR(Calendario[Data]))
+		formatString: \R\$ #,0
+		displayFolder: 5. Comparativos
+		lineageTag: aa669645-5ef3-4b59-b736-466b84f92e27
+
+	measure 'Var. receita vs ano anterior' = DIVIDE([Receita] - [Receita ano anterior], [Receita ano anterior])
+		formatString: 0.0%
+		displayFolder: 5. Comparativos
+		lineageTag: 3da3a2ff-212f-43a8-843c-fbc36f6ca8f5
+
+	measure 'Leads ano anterior' = CALCULATE([Leads], SAMEPERIODLASTYEAR(Calendario[Data]))
+		formatString: #,0
+		displayFolder: 5. Comparativos
+		lineageTag: e7c548dc-5ed5-44ee-9f6d-ad15fe191870
+
+	measure 'Var. leads vs ano anterior' = DIVIDE([Leads] - [Leads ano anterior], [Leads ano anterior])
+		formatString: 0.0%
+		displayFolder: 5. Comparativos
+		lineageTag: 73bb9d38-e51f-45d4-b41f-5a6374e92f5c
+
+	measure 'Vendas ano anterior' = CALCULATE([Vendas], SAMEPERIODLASTYEAR(Calendario[Data]))
+		formatString: #,0
+		displayFolder: 5. Comparativos
+		lineageTag: 8637a886-916b-4717-a264-527395b6205d
+
+	measure 'Var. vendas vs ano anterior' = DIVIDE([Vendas] - [Vendas ano anterior], [Vendas ano anterior])
+		formatString: 0.0%
+		displayFolder: 5. Comparativos
+		lineageTag: ea1a411f-b01a-4c38-99c2-22fb04634c85
+
+	measure 'Ticket médio ano anterior' = CALCULATE([Ticket médio], SAMEPERIODLASTYEAR(Calendario[Data]))
+		formatString: \R\$ #,0
+		displayFolder: 5. Comparativos
+		lineageTag: 5cb8cefb-c6c5-4955-b614-5add3710f7de
+
+	measure 'Var. ticket vs ano anterior' = DIVIDE([Ticket médio] - [Ticket médio ano anterior], [Ticket médio ano anterior])
+		formatString: 0.0%
+		displayFolder: 5. Comparativos
+		lineageTag: 1c147f0f-6f5e-44ad-8136-8b2e5facac92
+
+	measure 'Conversão da coorte ano anterior' = CALCULATE([Conversão da coorte], SAMEPERIODLASTYEAR(Calendario[Data]))
+		formatString: 0.0%
+		displayFolder: 5. Comparativos
+		lineageTag: bb42d520-5a40-42d6-a3f7-6b26006015f2
+
+	/// Participação do motivo no total de perdas do período.
+	measure '% das perdas' = DIVIDE([Perdidos], CALCULATE([Perdidos], REMOVEFILTERS('Motivo Perda')))
+		formatString: 0.0%
+		displayFolder: 6. Perdas
+		lineageTag: eb3a0661-2282-4165-bc0a-97392bd69de5
+
+	/// Conversas iniciadas no canal de mensagens.
+	measure Conversas = SUM(Conversas[qtd_conversas])
+		formatString: #,0
+		displayFolder: 7. Atendimento
+		lineageTag: c4710941-be03-4410-982c-c733a74d4c42
+
+	/// Última data com dados. Substitui TODAY(), que deixava o painel vazio com base estática.
+	measure 'Data de referência' = CALCULATE(MAX(Negocios[data_criacao_dia]), REMOVEFILTERS())
+		formatString: dd/mm/yyyy
+		displayFolder: 8. Apoio
+		lineageTag: 3dee4bf4-a8cd-4797-8961-1c4e67140c91
+
+	measure 'Texto var receita' =
+			VAR _v = [Var. receita vs ano anterior]
+			RETURN
+			    IF(
+			        ISBLANK([Receita ano anterior]),
+			        "sem base para comparar",
+			        IF(_v >= 0, "▲ ", "▼ ") & FORMAT(ABS(_v), "0.0%") & " vs ano anterior"
+			    )
+		displayFolder: 9. Textos e cores
+		lineageTag: 60f2dbed-9afd-44c3-87a5-fad4ae93944f
+
+	measure 'Cor var receita' = IF(ISBLANK([Receita ano anterior]), "#8A8A8A", IF([Var. receita vs ano anterior] >= 0, "#2E7D5B", "#C8553D"))
+		displayFolder: 9. Textos e cores
+		lineageTag: eb5b35d8-7eac-4077-8e87-f71ecfb45b3a
+
+	measure 'Texto var vendas' =
+			VAR _v = [Var. vendas vs ano anterior]
+			RETURN
+			    IF(
+			        ISBLANK([Vendas ano anterior]),
+			        "sem base para comparar",
+			        IF(_v >= 0, "▲ ", "▼ ") & FORMAT(ABS(_v), "0.0%") & " vs ano anterior"
+			    )
+		displayFolder: 9. Textos e cores
+		lineageTag: d3d918fd-aa11-452e-a948-d90a341b796b
+
+	measure 'Cor var vendas' = IF(ISBLANK([Vendas ano anterior]), "#8A8A8A", IF([Var. vendas vs ano anterior] >= 0, "#2E7D5B", "#C8553D"))
+		displayFolder: 9. Textos e cores
+		lineageTag: 9ec355ca-4f03-4af4-8b52-419d43b2415f
+
+	measure 'Texto var leads' =
+			VAR _v = [Var. leads vs ano anterior]
+			RETURN
+			    IF(
+			        ISBLANK([Leads ano anterior]),
+			        "sem base para comparar",
+			        IF(_v >= 0, "▲ ", "▼ ") & FORMAT(ABS(_v), "0.0%") & " vs ano anterior"
+			    )
+		displayFolder: 9. Textos e cores
+		lineageTag: dc72a441-744d-41c0-9bb4-d06a8989de9e
+
+	measure 'Cor var leads' = IF(ISBLANK([Leads ano anterior]), "#8A8A8A", IF([Var. leads vs ano anterior] >= 0, "#2E7D5B", "#C8553D"))
+		displayFolder: 9. Textos e cores
+		lineageTag: afc73549-b441-48e9-8321-b384093530cf
+
+	measure 'Texto var ticket' =
+			VAR _v = [Var. ticket vs ano anterior]
+			RETURN
+			    IF(
+			        ISBLANK([Ticket médio ano anterior]),
+			        "sem base para comparar",
+			        IF(_v >= 0, "▲ ", "▼ ") & FORMAT(ABS(_v), "0.0%") & " vs ano anterior"
+			    )
+		displayFolder: 9. Textos e cores
+		lineageTag: 764f065c-8140-47f7-9711-c5f924696bc8
+
+	measure 'Cor var ticket' = IF(ISBLANK([Ticket médio ano anterior]), "#8A8A8A", IF([Var. ticket vs ano anterior] >= 0, "#2E7D5B", "#C8553D"))
+		displayFolder: 9. Textos e cores
+		lineageTag: 208c2b6d-21fe-47b2-852d-a517e2952b9b
+
+	measure 'Texto var conversão' =
+			VAR _atual = [Conversão da coorte]
+			VAR _anterior = [Conversão da coorte ano anterior]
+			VAR _pp = (_atual - _anterior) * 100
+			RETURN
+			    IF(
+			        ISBLANK(_anterior),
+			        "sem base para comparar",
+			        IF(_pp >= 0, "▲ ", "▼ ") & FORMAT(ABS(_pp), "0.0") & " p.p. vs ano anterior"
+			    )
+		displayFolder: 9. Textos e cores
+		lineageTag: bf6c25dd-2977-4a8e-b0f5-0f97794301d4
+
+	measure 'Cor var conversão' = IF(ISBLANK([Conversão da coorte ano anterior]), "#8A8A8A", IF([Conversão da coorte] >= [Conversão da coorte ano anterior], "#2E7D5B", "#C8553D"))
+		displayFolder: 9. Textos e cores
+		lineageTag: f24cf209-4c2b-49a1-af7e-6066861f50ad
+
+	measure 'Texto gap da meta' =
+			VAR _gap = [Gap da meta]
+			RETURN
+			    IF(
+			        ISBLANK([Meta]),
+			        "sem meta no período",
+			        IF(
+			            _gap >= 0,
+			            "R$ " & FORMAT(_gap / 1000, "#,0") & " mil acima da meta",
+			            "faltam R$ " & FORMAT(-_gap / 1000, "#,0") & " mil para a meta"
+			        )
+			    )
+		displayFolder: 9. Textos e cores
+		lineageTag: 8ec293b8-455e-4177-9a45-ecbb3059de92
+
+	measure 'Cor gap da meta' = IF([Gap da meta] >= 0, "#2E7D5B", "#C8553D")
+		displayFolder: 9. Textos e cores
+		lineageTag: 6e08c8a6-3d56-43cb-adc0-1d758a3c9610
+
+	measure 'Resumo do período' =
+			VAR _ano =
+			    IF(HASONEVALUE(Calendario[Ano]), FORMAT(SELECTEDVALUE(Calendario[Ano]), "0"), "2024 e 2025")
+			VAR _pipe =
+			    IF(
+			        ISFILTERED(Pipeline[Pipeline]),
+			        IF(HASONEVALUE(Pipeline[Pipeline]), "pipeline " & SELECTEDVALUE(Pipeline[Pipeline]), "pipelines selecionados"),
+			        "todos os pipelines"
+			    )
+			RETURN
+			    _ano & ", " & _pipe & ": R$ " & FORMAT([Receita] / 1000000, "#,0.00") & " mi em receita, "
+			        & FORMAT([% da meta], "0%") & " da meta, " & FORMAT([Vendas], "#,0") & " vendas e "
+			        & FORMAT([Conversão da coorte], "0.0%") & " de conversão dos leads."
+		displayFolder: 9. Textos e cores
+		lineageTag: 3573f4b0-615d-407e-aaac-202945b26927
+
+	measure 'Texto rodapé' = "Dados sintéticos  ·  atualizados até " & FORMAT([Data de referência], "dd/mm/yyyy")
+		displayFolder: 9. Textos e cores
+		lineageTag: ed454f2f-ffc3-467a-958f-fa48fa57454b
+
+	measure 'Texto em aberto' = FORMAT(DIVIDE([Em aberto], [Leads]), "0.0%") & " dos leads criados no período"
+		displayFolder: 9. Textos e cores
+		lineageTag: ce9d93b3-4859-4cf0-80c3-197c0a36529f
+
+	/// Meta do período inteiro, repetida em qualquer ponto do eixo.
+	measure 'Fixo meta' = CALCULATE([Meta], REMOVEFILTERS('Eixo Meta'))
+		formatString: \R\$ #,0
+		displayFolder: 10. Visuais especiais
+		lineageTag: 57940851-17e8-42c4-95cc-85ac1060712a
+
+	measure 'Fixo receita' = CALCULATE([Receita], REMOVEFILTERS('Eixo Meta'))
+		formatString: \R\$ #,0
+		displayFolder: 10. Visuais especiais
+		lineageTag: 0a83825c-989e-445a-b8ec-7bd6aa28e6e1
+
+	/// Linha da meta acumulada, só nos meses.
+	measure 'MR YTD meta' = IF(SELECTEDVALUE('Eixo Meta'[Ordem]) <= 12, [Meta acumulada no ano])
+		formatString: \R\$ #,0
+		displayFolder: 10. Visuais especiais
+		lineageTag: 440b780f-7efb-4743-b6ab-8654dd447ad4
+
+	measure 'MR YTD realizado' = IF(SELECTEDVALUE('Eixo Meta'[Ordem]) <= 12, [Receita acumulada no ano])
+		formatString: \R\$ #,0
+		displayFolder: 10. Visuais especiais
+		lineageTag: 395280d6-8502-4045-9d53-9b980a223ccb
+
+	/// Coluna da meta, na posição 13 do eixo.
+	measure 'MR Meta' = IF(SELECTEDVALUE('Eixo Meta'[Ordem]) = 13, [Fixo meta])
+		formatString: \R\$ #,0
+		displayFolder: 10. Visuais especiais
+		lineageTag: 927c2f2e-ed60-4652-a866-b56c43142c52
+
+	measure 'MR Realizado' = IF(SELECTEDVALUE('Eixo Meta'[Ordem]) = 14, [Fixo receita])
+		formatString: \R\$ #,0
+		displayFolder: 10. Visuais especiais
+		lineageTag: 1e86aabc-29c7-43e5-9aad-16f33c0b3c68
+
+	/// Parte invisível da coluna de diferença: o menor entre meta e realizado.
+	measure 'MR Base' = IF(SELECTEDVALUE('Eixo Meta'[Ordem]) = 15, MIN([Fixo meta], [Fixo receita]))
+		formatString: \R\$ #,0
+		displayFolder: 10. Visuais especiais
+		lineageTag: 6c1b828a-2925-4fa6-80ed-e5dd656babe2
+
+	measure 'MR Acima' = IF(SELECTEDVALUE('Eixo Meta'[Ordem]) = 15 && [Fixo receita] >= [Fixo meta], [Fixo receita] - [Fixo meta])
+		formatString: \R\$ #,0
+		displayFolder: 10. Visuais especiais
+		lineageTag: 1ed8b815-e921-4eb5-8686-a2d559dc912b
+
+	measure 'MR Abaixo' = IF(SELECTEDVALUE('Eixo Meta'[Ordem]) = 15 && [Fixo receita] < [Fixo meta], [Fixo meta] - [Fixo receita])
+		formatString: \R\$ #,0
+		displayFolder: 10. Visuais especiais
+		lineageTag: 09f63e1f-e3dc-4014-9e45-740a23bcc260
+
+	/// Linha pontilhada no topo da meta.
+	measure 'MR Linha meta' = IF(SELECTEDVALUE('Eixo Meta'[Ordem]) >= 13, [Fixo meta])
+		formatString: \R\$ #,0
+		displayFolder: 10. Visuais especiais
+		lineageTag: f5fa0116-3d0b-4e49-91ae-f439583e58c6
+
+	measure 'MR Linha realizado' = IF(SELECTEDVALUE('Eixo Meta'[Ordem]) >= 14, [Fixo receita])
+		formatString: \R\$ #,0
+		displayFolder: 10. Visuais especiais
+		lineageTag: 52a6a493-c4fe-4377-90e0-1e5c29df13a7
+
+	/// Ponto invisível acima da coluna, só para carregar o rótulo fora da barra.
+	measure 'MR Pt meta' = IF(SELECTEDVALUE('Eixo Meta'[Ordem]) = 13, [Fixo meta])
+		formatString: \R\$ #,0
+		displayFolder: 10. Visuais especiais
+		lineageTag: eb9bcb1c-0b2a-43bc-ad19-56d55795a1b7
+
+	measure 'MR Pt realizado' = IF(SELECTEDVALUE('Eixo Meta'[Ordem]) = 14, [Fixo receita])
+		formatString: \R\$ #,0
+		displayFolder: 10. Visuais especiais
+		lineageTag: 1b5fc356-55c6-4ccd-b009-9fcaeb9fdd9d
+
+	/// Ponto acima da coluna de diferença; o rótulo mostra a diferença em R$ e %.
+	measure 'MR Pt diferença' = IF(SELECTEDVALUE('Eixo Meta'[Ordem]) = 15, MAX([Fixo meta], [Fixo receita]))
+		displayFolder: 10. Visuais especiais
+		lineageTag: f3a8a29b-8272-4c73-a539-02b704f7ed88
+
+		formatStringDefinition = """" & IF([Fixo receita] >= [Fixo meta], "+", "-") & "R$ " & FORMAT(ABS([Fixo receita] - [Fixo meta]) / 1000000, "0.00") & " mi (" & FORMAT(DIVIDE([Fixo receita], [Fixo meta]) - 1, "+0.0%;-0.0%") & ")" & """"
+
+	/// Cor do rótulo da diferença. Usa os valores fixos porque na coluna da diferença não há data no contexto.
+	measure 'MR Cor diferença' = IF([Fixo receita] >= [Fixo meta], "#2E7D5B", "#C8553D")
+		displayFolder: 10. Visuais especiais
+		lineageTag: 4a79d71f-6b1c-4ff5-a366-7235f6503036
+
+	/// Fim do eixo Y, com folga para os rótulos acima das colunas.
+	measure 'MR eixo' = MAX([Fixo meta], [Fixo receita]) * 1.15
+		formatString: \R\$ #,0
+		displayFolder: 10. Visuais especiais
+		lineageTag: ace3e6a4-1ba1-4c42-b28f-e04789d423c5
+
+	measure 'MR Rótulo diferença' =
+			VAR _d = [Fixo receita] - [Fixo meta]
+			RETURN
+			    IF(_d >= 0, "+", "-") & "R$ " & FORMAT(ABS(_d) / 1000000, "#,0.00") & " mi  ("
+			        & FORMAT(DIVIDE([Fixo receita], [Fixo meta]) - 1, "+0.0%;-0.0%") & ")"
+		displayFolder: 10. Visuais especiais
+		lineageTag: c5973531-76ed-44f5-a7f2-a93b9bbdc449
+
+	measure 'Receita mês anterior' = CALCULATE([Receita], DATEADD(Calendario[Data], -1, MONTH), REMOVEFILTERS('Eixo Meta'))
+		formatString: \R\$ #,0
+		displayFolder: 10. Visuais especiais
+		lineageTag: 497c61d5-1b19-4eb7-9764-5288eec41603
+
+	measure 'Var. receita vs mês anterior' = DIVIDE([Receita] - [Receita mês anterior], [Receita mês anterior])
+		formatString: 0.0%
+		displayFolder: 10. Visuais especiais
+		lineageTag: d1733b68-d2a6-4a5d-a501-229a43a5225c
+
+	measure 'Texto var mês anterior' =
+			VAR _v = [Var. receita vs mês anterior]
+			RETURN
+			    IF(
+			        ISBLANK([Receita mês anterior]),
+			        "sem base para comparar",
+			        IF(_v >= 0, "▲ ", "▼ ") & FORMAT(ABS(_v), "0.0%") & " vs mês anterior"
+			    )
+		displayFolder: 10. Visuais especiais
+		lineageTag: 5627ded8-65bc-4483-af77-3a063a91fc30
+
+	measure 'Cor var mês anterior' = IF(ISBLANK([Receita mês anterior]), "#8A8A8A", IF([Var. receita vs mês anterior] >= 0, "#2E7D5B", "#C8553D"))
+		displayFolder: 10. Visuais especiais
+		lineageTag: 88ff5a01-0adf-4a09-ba45-a36a23f495dd
+
+	measure 'Receita dia anterior' = CALCULATE([Receita], DATEADD(Calendario[Data], -1, DAY), REMOVEFILTERS('Eixo Meta'))
+		formatString: \R\$ #,0
+		displayFolder: 10. Visuais especiais
+		lineageTag: 8d876bbb-b829-4f68-a3fc-94bf8584538f
+
+	measure 'Var. receita vs dia anterior' = DIVIDE([Receita] - [Receita dia anterior], [Receita dia anterior])
+		formatString: 0.0%
+		displayFolder: 10. Visuais especiais
+		lineageTag: 5a78544d-4c07-43a0-99f2-3c9c41b8fcca
+
+	measure 'Texto var dia anterior' =
+			VAR _v = [Var. receita vs dia anterior]
+			RETURN
+			    IF(
+			        ISBLANK([Receita dia anterior]),
+			        "sem base para comparar",
+			        IF(_v >= 0, "▲ ", "▼ ") & FORMAT(ABS(_v), "0.0%") & " vs dia anterior"
+			    )
+		displayFolder: 10. Visuais especiais
+		lineageTag: 2cb9ca41-2988-47f7-b729-757d8928f1a9
+
+	measure 'Cor var dia anterior' = IF(ISBLANK([Receita dia anterior]), "#8A8A8A", IF([Var. receita vs dia anterior] >= 0, "#2E7D5B", "#C8553D"))
+		displayFolder: 10. Visuais especiais
+		lineageTag: 53e7aeb5-66f9-4566-8939-48bff0a15736
+
+	measure 'Período (texto)' =
+			VAR _ini = MIN(Calendario[Data])
+			VAR _fim = MAX(Calendario[Data])
+			RETURN
+			    SWITCH(
+			        TRUE(),
+			        _ini = _fim, FORMAT(_ini, "dd/mm/yyyy") & " (" & FORMAT(_ini, "dddd") & ")",
+			        FORMAT(_ini, "yyyymm") = FORMAT(_fim, "yyyymm"), FORMAT(_ini, "mmmm \d\e yyyy"),
+			        FORMAT(_ini, "dd/mm/yy") & " a " & FORMAT(_fim, "dd/mm/yy")
+			    )
+		displayFolder: 10. Visuais especiais
+		lineageTag: db070868-e960-4902-a93a-933c0d008283
+
+	/// Número do dia + receita, para a matriz de calendário.
+	measure 'Calendário célula' =
+			VAR _dia = SELECTEDVALUE(Calendario[Dia])
+			VAR _v = [Receita]
+			RETURN
+			    IF(
+			        NOT ISBLANK(_dia),
+			        _dia & UNICHAR(10) & IF(ISBLANK(_v), "-", "R$ " & FORMAT(_v / 1000, "#,0.0") & " mil")
+			    )
+		displayFolder: 10. Visuais especiais
+		lineageTag: d7538edc-9954-4c3d-80cb-cdd85a125a9b
+
+	measure 'Rótulo receita' =
+			VAR _v = [Receita]
+			RETURN
+			    IF(
+			        _v >= 1000000,
+			        "R$ " & FORMAT(_v / 1000000, "#,0.00") & " mi",
+			        "R$ " & FORMAT(_v / 1000, "#,0") & " mil"
+			    )
+		displayFolder: 10. Visuais especiais
+		lineageTag: 4c6aa302-9ba7-4e50-888a-27afe47fd35e
+
+	measure 'Rótulo % perdas' = FORMAT([% das perdas], "0.0%")
+		displayFolder: 10. Visuais especiais
+		lineageTag: 80a3ee16-75c1-4cab-9d4c-fcfc545be31c
+
+	measure 'Rótulo conversão' = FORMAT([Conversão da coorte], "0.0%")
+		displayFolder: 10. Visuais especiais
+		lineageTag: 98efcab8-90bc-48a0-8b3a-cb2b03b76544
+
+	/// Velocímetro de meta em SVG, escrito do zero. Exibido como imagem num cartão.
+	measure 'SVG meta' =
+			VAR _p = [% da meta]
+			VAR _cor =
+			    IF(_p >= 1, "%232E7D5B", IF(_p >= 0.8, "%23D9A441", "%23C8553D"))
+			VAR _n = 60
+			VAR _ativos = ROUND(MIN(_p, 1) * _n, 0)
+			VAR _marcas =
+			    CONCATENATEX(
+			        GENERATESERIES(0, _n - 1, 1),
+			        "<rect x='98' y='6' width='4' height='" & IF(MOD([Value], 5) = 0, 18, 11)
+			            & "' rx='2' fill='" & IF([Value] < _ativos, _cor, "%23E4E1D8")
+			            & "' transform='rotate(" & [Value] * 6 & " 100 100)'/>",
+			        ""
+			    )
+			RETURN
+			    IF(
+			        NOT ISBLANK(_p),
+			        "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'>"
+			            & _marcas
+			            & "<text x='100' y='110' text-anchor='middle' font-family='Bahnschrift, Segoe UI' font-size='38' font-weight='600' fill='%231A1A1A'>"
+			            & FORMAT(_p * 100, "0") & "%25</text>"
+			            & "<text x='100' y='136' text-anchor='middle' font-family='Segoe UI' font-size='13' fill='%236B6B6B'>da meta</text></svg>"
+			    )
+		displayFolder: 10. Visuais especiais
+		lineageTag: 9aabd8dc-a524-444d-8547-965beb0e2b82
+		dataCategory: ImageUrl
+
+	/// Colunas do comparativo. Use com 'Comparativo'[Período] no eixo.
+	measure 'Cmp mês valor' = SWITCH(SELECTEDVALUE('Comparativo'[Ordem]), 1, [Receita mês anterior], 3, [Receita])
+		formatString: \R\$ #,0
+		displayFolder: 10. Visuais especiais
+		lineageTag: e413f96e-ca22-45fa-b64c-e526846764c6
+
+	/// Linha horizontal acima das colunas.
+	measure 'Cmp mês linha' =
+			VAR _m = MAX([Receita mês anterior], [Receita])
+			RETURN
+			    IF(_m > 0, _m * 1.35)
+		formatString: \R\$ #,0
+		displayFolder: 10. Visuais especiais
+		lineageTag: c3e110e1-a358-402e-a46d-dc34daa20930
+
+	/// Fim do eixo Y, para sobrar espaço para a linha e o rótulo.
+	measure 'Cmp mês eixo' = MAX([Receita mês anterior], [Receita]) * 1.6
+		formatString: \R\$ #,0
+		displayFolder: 10. Visuais especiais
+		lineageTag: 91e2ae2e-a6d2-4208-aafc-047da4209bf1
+
+	/// Ponto no meio da linha; o rótulo mostra a variação (format string dinâmica).
+	measure 'Cmp mês variação' = IF(SELECTEDVALUE('Comparativo'[Ordem]) = 2 && NOT ISBLANK([Receita mês anterior]), [Cmp mês linha])
+		displayFolder: 10. Visuais especiais
+		lineageTag: 8d5d50a2-092d-45bc-a3c0-35b23a32cfe3
+
+		formatStringDefinition = """" & FORMAT([Var. receita vs mês anterior], "▲ +0.0%;▼ -0.0%;0.0%") & """"
+
+	/// Ponto sobre a primeira coluna; a barra de erro desenha a haste até o topo dela.
+	measure 'Cmp mês anterior' = IF(SELECTEDVALUE('Comparativo'[Ordem]) = 1, [Cmp mês linha])
+		formatString: \R\$ #,0
+		displayFolder: 10. Visuais especiais
+		lineageTag: a04698c7-99c9-49d2-b8fe-1ba0227aa8e3
+
+	/// Ponto sobre a última coluna; a barra de erro desenha a haste até o topo dela.
+	measure 'Cmp mês atual' = IF(SELECTEDVALUE('Comparativo'[Ordem]) = 3, [Cmp mês linha])
+		formatString: \R\$ #,0
+		displayFolder: 10. Visuais especiais
+		lineageTag: 8a1c1a18-4641-4fc1-b762-a70315150edc
+
+	/// Colunas do comparativo. Use com 'Comparativo Dia'[Período] no eixo.
+	measure 'Cmp dia valor' = SWITCH(SELECTEDVALUE('Comparativo Dia'[Ordem]), 1, [Receita dia anterior], 3, [Receita])
+		formatString: \R\$ #,0
+		displayFolder: 10. Visuais especiais
+		lineageTag: 94866c3c-c21e-4edf-b199-ec045a718430
+
+	/// Linha horizontal acima das colunas.
+	measure 'Cmp dia linha' =
+			VAR _m = MAX([Receita dia anterior], [Receita])
+			RETURN
+			    IF(_m > 0, _m * 1.35)
+		formatString: \R\$ #,0
+		displayFolder: 10. Visuais especiais
+		lineageTag: 64b6492a-c31e-41fe-bbfa-691f00ee6697
+
+	/// Fim do eixo Y, para sobrar espaço para a linha e o rótulo.
+	measure 'Cmp dia eixo' = MAX([Receita dia anterior], [Receita]) * 1.6
+		formatString: \R\$ #,0
+		displayFolder: 10. Visuais especiais
+		lineageTag: f981d789-bc9f-4748-ac9c-88fe0df88d8d
+
+	/// Ponto no meio da linha; o rótulo mostra a variação (format string dinâmica).
+	measure 'Cmp dia variação' = IF(SELECTEDVALUE('Comparativo Dia'[Ordem]) = 2 && NOT ISBLANK([Receita dia anterior]), [Cmp dia linha])
+		displayFolder: 10. Visuais especiais
+		lineageTag: 442cec19-8d2b-4f72-838a-dc9ff483aedc
+
+		formatStringDefinition = """" & FORMAT([Var. receita vs dia anterior], "▲ +0.0%;▼ -0.0%;0.0%") & """"
+
+	/// Ponto sobre a primeira coluna; a barra de erro desenha a haste até o topo dela.
+	measure 'Cmp dia anterior' = IF(SELECTEDVALUE('Comparativo Dia'[Ordem]) = 1, [Cmp dia linha])
+		formatString: \R\$ #,0
+		displayFolder: 10. Visuais especiais
+		lineageTag: cc2d2f4d-53d9-49e2-b64c-1bfa991cc8c9
+
+	/// Ponto sobre a última coluna; a barra de erro desenha a haste até o topo dela.
+	measure 'Cmp dia atual' = IF(SELECTEDVALUE('Comparativo Dia'[Ordem]) = 3, [Cmp dia linha])
+		formatString: \R\$ #,0
+		displayFolder: 10. Visuais especiais
+		lineageTag: 032c2174-018a-486e-95b0-42e5fc78740b
+
+	column Coluna
+		dataType: string
+		isHidden
+		lineageTag: 0983c389-7b2d-4c9a-9ab4-dddcf6845427
+		summarizeBy: none
+		sourceColumn: Coluna
+
+	partition Medidas = m
+		mode: import
+		source = #table(type table [Coluna = text], {})
+

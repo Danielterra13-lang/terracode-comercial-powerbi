@@ -1,0 +1,33 @@
+table 'Motivo Perda'
+	lineageTag: b1552a9a-8372-4d46-97ce-2b5fdaac8a43
+
+	column id_motivo
+		dataType: int64
+		isHidden
+		lineageTag: 931efe54-efc4-48cd-a9c7-f5eb035bd766
+		summarizeBy: none
+		sourceColumn: id_motivo
+
+	column Motivo
+		dataType: string
+		lineageTag: 4930d5b7-c1d1-4cd5-838d-77f671977d2c
+		summarizeBy: none
+		sourceColumn: motivo
+
+	column 'Categoria do motivo'
+		dataType: string
+		lineageTag: c59421aa-db30-4f7b-a498-21d4ced3981c
+		summarizeBy: none
+		sourceColumn: categoria_motivo
+
+	partition 'Motivo Perda' = m
+		mode: import
+		source =
+				let
+				    Origem = Csv.Document(File.Contents(PastaDados & "dim_motivo_perda.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Cabecalhos = Table.PromoteHeaders(Origem, [PromoteAllScalars=true]),
+				    Nulos = Table.ReplaceValue(Cabecalhos, "", null, Replacer.ReplaceValue, Table.ColumnNames(Cabecalhos)),
+				    Tipos = Table.TransformColumnTypes(Nulos, {{"id_motivo", Int64.Type}, {"motivo", type text}, {"categoria_motivo", type text}}, "en-US")
+				in
+				    Tipos
+

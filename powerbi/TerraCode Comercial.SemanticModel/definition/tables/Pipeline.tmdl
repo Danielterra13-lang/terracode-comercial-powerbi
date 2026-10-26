@@ -1,0 +1,35 @@
+table Pipeline
+	lineageTag: fcea5381-6c2b-46d1-af1f-f78a6a22c1fb
+
+	column id_pipeline
+		dataType: int64
+		isHidden
+		lineageTag: a0ca9b04-dace-46c7-96a1-ef9c0cb0e50e
+		summarizeBy: none
+		sourceColumn: id_pipeline
+
+	column Pipeline
+		dataType: string
+		lineageTag: 157dc020-079e-4093-99fb-0a46a365e410
+		summarizeBy: none
+		sourceColumn: pipeline
+		sortByColumn: ordem
+
+	column ordem
+		dataType: int64
+		isHidden
+		lineageTag: 72334e81-ca3f-4d83-b1ca-35580c6b84e4
+		summarizeBy: none
+		sourceColumn: ordem
+
+	partition Pipeline = m
+		mode: import
+		source =
+				let
+				    Origem = Csv.Document(File.Contents(PastaDados & "dim_pipeline.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Cabecalhos = Table.PromoteHeaders(Origem, [PromoteAllScalars=true]),
+				    Nulos = Table.ReplaceValue(Cabecalhos, "", null, Replacer.ReplaceValue, Table.ColumnNames(Cabecalhos)),
+				    Tipos = Table.TransformColumnTypes(Nulos, {{"id_pipeline", Int64.Type}, {"pipeline", type text}, {"ordem", Int64.Type}}, "en-US")
+				in
+				    Tipos
+

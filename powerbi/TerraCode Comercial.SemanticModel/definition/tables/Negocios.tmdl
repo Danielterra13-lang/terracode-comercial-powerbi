@@ -1,0 +1,194 @@
+table Negocios
+	lineageTag: 3d555fe4-90c8-49ac-aa6b-664b178002aa
+
+	column id_negocio
+		dataType: string
+		isHidden
+		lineageTag: caf571e5-10b6-4906-990f-4e7805423528
+		summarizeBy: none
+		sourceColumn: id_negocio
+
+	column 'Data de criação'
+		dataType: dateTime
+		formatString: dd/mm/yyyy hh:nn
+		lineageTag: 7290238e-b2b0-4a8c-8559-bab1bd42023b
+		summarizeBy: none
+		sourceColumn: data_criacao
+
+	column 'Data de fechamento'
+		dataType: dateTime
+		formatString: dd/mm/yyyy hh:nn
+		lineageTag: 981db923-61f2-4b6c-a85a-1f575bc576bd
+		summarizeBy: none
+		sourceColumn: data_fechamento
+
+	column Status
+		dataType: string
+		lineageTag: fe3db064-aaa8-47ec-ad49-8e00b2c8e1b9
+		summarizeBy: none
+		sourceColumn: status
+
+	column id_pipeline
+		dataType: int64
+		isHidden
+		lineageTag: f0584966-fed5-44a9-a560-bd1fc062f910
+		summarizeBy: none
+		sourceColumn: id_pipeline
+
+	column id_vendedor
+		dataType: int64
+		isHidden
+		lineageTag: 2e0d27c7-24c3-4947-8cdc-dc06178267c9
+		summarizeBy: none
+		sourceColumn: id_vendedor
+
+	column id_fonte
+		dataType: int64
+		isHidden
+		lineageTag: c5c2bab4-fe56-4966-9a65-a5f86eb68eb8
+		summarizeBy: none
+		sourceColumn: id_fonte
+
+	column id_etapa
+		dataType: int64
+		isHidden
+		lineageTag: 576910a7-c59c-4ebb-bc73-cf656a8bb073
+		summarizeBy: none
+		sourceColumn: id_etapa
+
+	column id_etapa_maxima
+		dataType: int64
+		isHidden
+		lineageTag: d39263d7-fb67-4b0d-a6ee-5746bbc9fc6c
+		summarizeBy: none
+		sourceColumn: id_etapa_maxima
+
+	column ordem_etapa_maxima
+		dataType: int64
+		isHidden
+		lineageTag: f103f9b0-81bb-4f33-a16b-e861a5f6124b
+		summarizeBy: none
+		sourceColumn: ordem_etapa_maxima
+
+	column 'Lead score'
+		dataType: double
+		formatString: #,0
+		lineageTag: a09e0674-c262-45c0-b1b2-4e98e877a493
+		summarizeBy: none
+		sourceColumn: lead_score
+
+	column id_motivo_perda
+		dataType: int64
+		isHidden
+		lineageTag: 04ee3fa4-d40b-4b08-888a-e57096c8df2b
+		summarizeBy: none
+		sourceColumn: id_motivo_perda
+
+	column 'Qtd motivos de perda'
+		dataType: int64
+		isHidden
+		lineageTag: 77b5bd34-3d0d-4394-a5e0-966c4aff63ea
+		summarizeBy: none
+		sourceColumn: qtd_motivos_perda
+
+	column id_produto
+		dataType: int64
+		isHidden
+		lineageTag: c3599e4d-aaa9-45c5-8dd4-656b1a5caed7
+		summarizeBy: none
+		sourceColumn: id_produto
+
+	column id_forma_pagamento
+		dataType: int64
+		isHidden
+		lineageTag: 0cb88011-cdd0-4039-b90a-e500faa22c5b
+		summarizeBy: none
+		sourceColumn: id_forma_pagamento
+
+	column Desconto
+		dataType: double
+		formatString: 0%
+		lineageTag: 06ee7a2b-fae5-4814-9991-5dc2b8968d61
+		summarizeBy: none
+		sourceColumn: desconto_pct
+
+	column Valor
+		dataType: double
+		isHidden
+		formatString: \R\$ #,0.00
+		lineageTag: b1aa02ad-dc32-4b3c-874f-4c8be00cd823
+		summarizeBy: none
+		sourceColumn: valor
+
+	column 'Ciclo (dias)'
+		dataType: double
+		isHidden
+		formatString: #,0.0
+		lineageTag: a40a2dba-7e49-450b-85b3-0f002870fcc7
+		summarizeBy: none
+		sourceColumn: ciclo_dias
+
+	column data_criacao_dia
+		dataType: dateTime
+		isHidden
+		formatString: dd/mm/yyyy
+		lineageTag: 80f6a1c7-02eb-42f8-8d33-8c949588cede
+		summarizeBy: none
+		sourceColumn: data_criacao_dia
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column data_fechamento_dia
+		dataType: dateTime
+		isHidden
+		formatString: dd/mm/yyyy
+		lineageTag: 656d1bca-e3c3-4883-ab88-a24d2c952969
+		summarizeBy: none
+		sourceColumn: data_fechamento_dia
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Hora de criação'
+		dataType: int64
+		formatString: 0
+		lineageTag: db29faa7-2e26-4d2d-8aa2-f321b5ac07db
+		summarizeBy: none
+		sourceColumn: hora_criacao
+
+	column 'Faixa de score'
+		dataType: string
+		lineageTag: 9dced23c-278c-4c42-80cf-5e13a9ce770f
+		summarizeBy: none
+		sourceColumn: faixa_score
+		sortByColumn: ordem_faixa_score
+
+	column ordem_faixa_score
+		dataType: int64
+		isHidden
+		lineageTag: 648e814b-f23f-4a01-9997-0d107a8e881c
+		summarizeBy: none
+		sourceColumn: ordem_faixa_score
+
+	partition Negocios = m
+		mode: import
+		source =
+				let
+				    Origem = Csv.Document(File.Contents(PastaDados & "fato_negocios.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Cabecalhos = Table.PromoteHeaders(Origem, [PromoteAllScalars=true]),
+				    Nulos = Table.ReplaceValue(Cabecalhos, "", null, Replacer.ReplaceValue, Table.ColumnNames(Cabecalhos)),
+				    Tipos = Table.TransformColumnTypes(Nulos, {{"id_negocio", type text}, {"data_criacao", type datetime}, {"data_fechamento", type datetime}, {"status", type text}, {"id_pipeline", Int64.Type}, {"id_vendedor", Int64.Type}, {"id_fonte", Int64.Type}, {"id_etapa", Int64.Type}, {"id_etapa_maxima", Int64.Type}, {"ordem_etapa_maxima", Int64.Type}, {"lead_score", type number}, {"id_motivo_perda", Int64.Type}, {"qtd_motivos_perda", Int64.Type}, {"id_produto", Int64.Type}, {"id_forma_pagamento", Int64.Type}, {"desconto_pct", type number}, {"valor", type number}, {"ciclo_dias", type number}}, "en-US"),
+				    Datas = Table.AddColumn(Tipos, "data_criacao_dia", each Date.From([data_criacao]), type date),
+				    Datas2 = Table.AddColumn(Datas, "data_fechamento_dia", each Date.From([data_fechamento]), type date),
+				    Hora = Table.AddColumn(Datas2, "hora_criacao", each Time.Hour(Time.From([data_criacao])), Int64.Type),
+				    Faixa = Table.AddColumn(Hora, "faixa_score", each
+				        if [lead_score] = null then "Sem score"
+				        else if [lead_score] < 100 then "Frio"
+				        else if [lead_score] < 500 then "Morno"
+				        else if [lead_score] < 1000 then "Quente"
+				        else if [lead_score] < 5000 then "Muito quente"
+				        else "Pelando", type text),
+				    OrdemFaixa = Table.AddColumn(Faixa, "ordem_faixa_score", each
+				        List.PositionOf({"Frio","Morno","Quente","Muito quente","Pelando","Sem score"}, [faixa_score]) + 1, Int64.Type)
+				  in
+				    OrdemFaixa
+

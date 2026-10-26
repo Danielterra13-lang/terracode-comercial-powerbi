@@ -1,0 +1,17 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "ebcf07fc2c112c51b1ff",
+  "position": {
+    "x": 1220,
+    "y": 0,
+    "z": 1700,
+    "height": 1000,
+    "width": 380,
+    "tabOrder": 1700
+  },
+  "visualGroup": {
+    "displayName": "Painel de filtros",
+    "groupMode": "ScaleMode"
+  },
+  "isHidden": true
+}

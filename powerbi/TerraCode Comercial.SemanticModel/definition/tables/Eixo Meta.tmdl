@@ -1,0 +1,22 @@
+/// Eixo do gráfico Meta vs Realizado: meses + complemento. Relacionado a Calendario[mes]
+table 'Eixo Meta'
+	lineageTag: 30065b38-cb5e-4596-a6a6-4148d5068987
+
+	column Ordem
+		dataType: int64
+		isHidden
+		lineageTag: b4b5e692-1ca7-4b44-90c3-e9c0b9d244ae
+		summarizeBy: none
+		sourceColumn: Ordem
+
+	column Período
+		dataType: string
+		lineageTag: 74a42a8b-5206-4592-bc7a-4d59719a2c12
+		summarizeBy: none
+		sourceColumn: Período
+		sortByColumn: Ordem
+
+	partition 'Eixo Meta' = m
+		mode: import
+		source = #table(type table [Ordem = Int64.Type, #"Período" = text], {{1, "Jan"}, {2, "Fev"}, {3, "Mar"}, {4, "Abr"}, {5, "Mai"}, {6, "Jun"}, {7, "Jul"}, {8, "Ago"}, {9, "Set"}, {10, "Out"}, {11, "Nov"}, {12, "Dez"}, {13, "Meta"}, {14, "Realizado"}, {15, ""}})
+

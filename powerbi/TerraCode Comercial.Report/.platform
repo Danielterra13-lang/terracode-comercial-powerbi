@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "TerraCode Comercial"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "765cb335-77e3-511c-b6a3-8b8b3ca2b17e"
+  }
+}

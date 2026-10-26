@@ -1,0 +1,139 @@
+table Calendario
+	lineageTag: b19824d2-2ce8-4319-bdf4-0e6da14f0035
+	dataCategory: Time
+
+	column Data
+		dataType: dateTime
+		isKey
+		formatString: dd/mm/yyyy
+		lineageTag: b90ed623-5abf-4507-9f70-ec5a009e8e33
+		summarizeBy: none
+		sourceColumn: data
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Ano
+		dataType: int64
+		formatString: 0
+		lineageTag: b0ed8bae-e9db-4782-92f0-317317c00f9e
+		summarizeBy: none
+		sourceColumn: ano
+
+	column mes
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 3c4af194-a4c5-491e-9aa1-a6d6ccd22ffd
+		summarizeBy: none
+		sourceColumn: mes
+
+	column Mês
+		dataType: string
+		lineageTag: 93d9cc43-ed49-4e61-98aa-f17b5e993f22
+		summarizeBy: none
+		sourceColumn: nome_mes
+		sortByColumn: mes
+
+	column 'Mês abrev.'
+		dataType: string
+		lineageTag: ea2b81c8-cc82-4dc6-83e8-20b8b34feb33
+		summarizeBy: none
+		sourceColumn: mes_abrev
+		sortByColumn: mes
+
+	column Ano-mês
+		dataType: string
+		lineageTag: 39faf905-ffd5-44a0-a9e9-46941c4cc7dc
+		summarizeBy: none
+		sourceColumn: ano_mes
+
+	column inicio_mes
+		dataType: dateTime
+		isHidden
+		formatString: dd/mm/yyyy
+		lineageTag: 6cf2cc5e-0120-49d6-baf7-703b1c0fc5c6
+		summarizeBy: none
+		sourceColumn: inicio_mes
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Trimestre
+		dataType: string
+		lineageTag: 1873e342-39f7-4eff-bf8c-26be1de55d99
+		summarizeBy: none
+		sourceColumn: trimestre
+
+	column 'Semana ISO'
+		dataType: int64
+		formatString: 0
+		lineageTag: 0d96ef16-be7a-44de-9c98-2a376ea80501
+		summarizeBy: none
+		sourceColumn: semana_iso
+
+	column Dia
+		dataType: int64
+		formatString: 0
+		lineageTag: 05480b22-9680-4483-80a8-f2dae8e450ea
+		summarizeBy: none
+		sourceColumn: dia
+
+	column dia_semana_num
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 2790c468-c6e3-4b71-ad77-fe65ddb57d1f
+		summarizeBy: none
+		sourceColumn: dia_semana_num
+
+	column 'Dia da semana'
+		dataType: string
+		lineageTag: e5b3f3d4-5a8c-4c58-99a5-dc7e4acb578f
+		summarizeBy: none
+		sourceColumn: dia_semana
+		sortByColumn: dia_semana_num
+
+	column 'Dia sem.'
+		dataType: string
+		lineageTag: 6132d59a-aeb1-4fc9-86b3-c37089c5cb2e
+		summarizeBy: none
+		sourceColumn: dia_semana_abrev
+		sortByColumn: dia_semana_num
+
+	column 'Semana do mês'
+		dataType: int64
+		formatString: 0
+		lineageTag: 9ae1524e-09a5-4ca1-ab76-10af372e8430
+		summarizeBy: none
+		sourceColumn: semana_mes
+
+	column Feriado
+		dataType: boolean
+		lineageTag: d3bb6191-cca0-4378-b30e-c482a0fed741
+		summarizeBy: none
+		sourceColumn: feriado
+
+	column 'Dia útil'
+		dataType: boolean
+		lineageTag: eb7079a9-14ef-4c67-b9a6-bd56627304c9
+		summarizeBy: none
+		sourceColumn: dia_util
+
+	column Mês/ano
+		dataType: string
+		lineageTag: 54ff2f73-9633-4f37-becf-d2b7fdf061ff
+		summarizeBy: none
+		sourceColumn: mes_ano
+		sortByColumn: inicio_mes
+
+	partition Calendario = m
+		mode: import
+		source =
+				let
+				    Origem = Csv.Document(File.Contents(PastaDados & "dim_calendario.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Cabecalhos = Table.PromoteHeaders(Origem, [PromoteAllScalars=true]),
+				    Nulos = Table.ReplaceValue(Cabecalhos, "", null, Replacer.ReplaceValue, Table.ColumnNames(Cabecalhos)),
+				    Tipos = Table.TransformColumnTypes(Nulos, {{"data", type date}, {"ano", Int64.Type}, {"mes", Int64.Type}, {"nome_mes", type text}, {"mes_abrev", type text}, {"ano_mes", type text}, {"inicio_mes", type date}, {"trimestre", type text}, {"semana_iso", Int64.Type}, {"dia", Int64.Type}, {"dia_semana_num", Int64.Type}, {"dia_semana", type text}, {"dia_semana_abrev", type text}, {"semana_mes", Int64.Type}, {"feriado", type logical}, {"dia_util", type logical}}, "en-US"),
+				    Rotulo = Table.AddColumn(Tipos, "mes_ano", each [mes_abrev] & "/" & Text.End(Text.From([ano]), 2), type text)
+				  in
+				    Rotulo
+

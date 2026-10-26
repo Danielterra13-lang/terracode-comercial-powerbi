@@ -1,0 +1,22 @@
+/// Eixo do comparativo diário (a categoria vazia carrega o rótulo da variação)
+table 'Comparativo Dia'
+	lineageTag: cd80c0b1-e397-47f1-8e08-ee747499029f
+
+	column Ordem
+		dataType: int64
+		isHidden
+		lineageTag: 708581bf-d6be-4476-ab04-8a28ad530b53
+		summarizeBy: none
+		sourceColumn: Ordem
+
+	column Período
+		dataType: string
+		lineageTag: fbce269a-fd70-4054-8628-3aa259cf1376
+		summarizeBy: none
+		sourceColumn: Período
+		sortByColumn: Ordem
+
+	partition 'Comparativo Dia' = m
+		mode: import
+		source = #table(type table [Ordem = Int64.Type, #"Período" = text], {{1, "Dia anterior"}, {2, ""}, {3, "Dia"}})
+

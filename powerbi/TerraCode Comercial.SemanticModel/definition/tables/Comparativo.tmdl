@@ -1,0 +1,22 @@
+/// Eixo do comparativo mensal (a categoria vazia carrega o rótulo da variação)
+table Comparativo
+	lineageTag: 4918c8a0-3304-4762-8314-cb4d0b49af7f
+
+	column Ordem
+		dataType: int64
+		isHidden
+		lineageTag: 50c67277-d9c1-4be0-950f-07dae53fb36f
+		summarizeBy: none
+		sourceColumn: Ordem
+
+	column Período
+		dataType: string
+		lineageTag: 2c16c75d-fd63-41ed-a776-a6b359387b30
+		summarizeBy: none
+		sourceColumn: Período
+		sortByColumn: Ordem
+
+	partition Comparativo = m
+		mode: import
+		source = #table(type table [Ordem = Int64.Type, #"Período" = text], {{1, "Mês anterior"}, {2, ""}, {3, "Mês atual"}})
+

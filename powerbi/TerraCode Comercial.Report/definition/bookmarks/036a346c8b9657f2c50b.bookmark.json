@@ -1,0 +1,37 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/bookmark/2.1.0/schema.json",
+  "displayName": "Filtros abertos (Funil e canais)",
+  "name": "036a346c8b9657f2c50b",
+  "options": {
+    "applyOnlyToTargetVisuals": true,
+    "targetVisualNames": [
+      "34db57f1e993a4e208a0",
+      "e0f62de7215edc470971",
+      "5f06fc816050ea2e46b4",
+      "420431732f5d9ee04c0f",
+      "b4cc7b2a03427e190e56",
+      "617b4dc0c5bc107549db",
+      "d62faf50722b9f9fc332",
+      "fcc9f89e9aa438cca059",
+      "7107866aab5feaa71405",
+      "ee948d6a685cd92be9cd"
+    ],
+    "suppressData": true,
+    "suppressActiveSection": true
+  },
+  "explorationState": {
+    "version": "1.3",
+    "activeSection": "funil",
+    "sections": {
+      "funil": {
+        "visualContainers": {},
+        "visualContainerGroups": {
+          "34db57f1e993a4e208a0": {
+            "isHidden": false
+          }
+        }
+      }
+    },
+    "objects": {}
+  }
+}

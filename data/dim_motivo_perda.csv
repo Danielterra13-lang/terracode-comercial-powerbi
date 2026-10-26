@@ -1,0 +1,14 @@
+id_motivo,motivo,categoria_motivo
+1,Parou de responder,Sem resposta
+2,Nunca respondeu o contato,Sem resposta
+3,Interesse futuro,Timing
+4,Não é o momento,Timing
+5,Comprou sozinho pelo site,Autonomia / concorrência
+6,Fechou com concorrente,Autonomia / concorrência
+7,Financeiro inviável,Financeiro
+8,Achou caro,Financeiro
+9,Sem interesse em seguir,Fit
+10,Não tem graduação,Fit
+11,Produto não atende,Fit
+12,Lead duplicado,Qualidade do dado
+13,Contato inválido,Qualidade do dado

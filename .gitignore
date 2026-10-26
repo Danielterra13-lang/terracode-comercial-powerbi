@@ -1,0 +1,9 @@
+# cache e configurações locais do Power BI Desktop
+**/.pbi/localSettings.json
+**/.pbi/cache.abf*
+
+# lista local de termos da empresa original (usada pelo validar.py)
+scripts/pbip/termos_proibidos.txt
+
+__pycache__/
+*.pyc

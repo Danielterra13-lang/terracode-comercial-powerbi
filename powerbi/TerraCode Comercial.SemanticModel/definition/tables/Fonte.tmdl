@@ -1,0 +1,33 @@
+table Fonte
+	lineageTag: 33df3d96-a1f8-4fda-8650-91b283cb60c1
+
+	column id_fonte
+		dataType: int64
+		isHidden
+		lineageTag: 3e8be5fa-7e3d-4081-8c7a-e9aa6324e22d
+		summarizeBy: none
+		sourceColumn: id_fonte
+
+	column 'Fonte (CRM)'
+		dataType: string
+		lineageTag: 3b465ee6-8762-40e5-9b95-d10ce8816c79
+		summarizeBy: none
+		sourceColumn: fonte_crm
+
+	column Canal
+		dataType: string
+		lineageTag: cc4ebd4b-7859-4751-b8f0-d2e0a43718f6
+		summarizeBy: none
+		sourceColumn: canal
+
+	partition Fonte = m
+		mode: import
+		source =
+				let
+				    Origem = Csv.Document(File.Contents(PastaDados & "dim_fonte.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Cabecalhos = Table.PromoteHeaders(Origem, [PromoteAllScalars=true]),
+				    Nulos = Table.ReplaceValue(Cabecalhos, "", null, Replacer.ReplaceValue, Table.ColumnNames(Cabecalhos)),
+				    Tipos = Table.TransformColumnTypes(Nulos, {{"id_fonte", Int64.Type}, {"fonte_crm", type text}, {"canal", type text}}, "en-US")
+				in
+				    Tipos
+

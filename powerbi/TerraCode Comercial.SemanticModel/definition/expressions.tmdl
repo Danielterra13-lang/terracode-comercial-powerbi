@@ -1,0 +1,6 @@
+/// Pasta onde estão os CSVs gerados por scripts/gerar_dados.py (terminar com \)
+expression PastaDados = "C:\Users\danie\Downloads\Terracode\terracode-academy\data\" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 5ca0e409-a2cc-4203-9fe5-31c7705b79dc
+
+	annotation PBI_ResultType = Text
+

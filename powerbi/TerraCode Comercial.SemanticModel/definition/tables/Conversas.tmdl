@@ -1,0 +1,39 @@
+table Conversas
+	lineageTag: 8f523401-b4bf-4fff-8cb1-a1afdaf386f2
+
+	column data
+		dataType: dateTime
+		isHidden
+		formatString: dd/mm/yyyy
+		lineageTag: 79b25905-ab76-41df-8e3e-c6b4fe69f766
+		summarizeBy: none
+		sourceColumn: data
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Hora
+		dataType: int64
+		formatString: 0
+		lineageTag: a0a1f12f-3208-4d01-aea4-b5b65cc76078
+		summarizeBy: none
+		sourceColumn: hora
+
+	column qtd_conversas
+		dataType: int64
+		isHidden
+		formatString: #,0
+		lineageTag: a5b24960-4604-4126-9f94-22370916004f
+		summarizeBy: none
+		sourceColumn: qtd_conversas
+
+	partition Conversas = m
+		mode: import
+		source =
+				let
+				    Origem = Csv.Document(File.Contents(PastaDados & "fato_conversas.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Cabecalhos = Table.PromoteHeaders(Origem, [PromoteAllScalars=true]),
+				    Nulos = Table.ReplaceValue(Cabecalhos, "", null, Replacer.ReplaceValue, Table.ColumnNames(Cabecalhos)),
+				    Tipos = Table.TransformColumnTypes(Nulos, {{"data", type date}, {"hora", Int64.Type}, {"qtd_conversas", Int64.Type}}, "en-US")
+				in
+				    Tipos
+

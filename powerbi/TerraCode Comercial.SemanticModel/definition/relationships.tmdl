@@ -1,0 +1,52 @@
+relationship 79b01556-0ade-53eb-831a-e36611e15dea
+	fromColumn: Negocios.data_criacao_dia
+	toColumn: Calendario.Data
+
+relationship 805a1030-ab6b-5197-a60e-df09a8326f98
+	fromColumn: Negocios.id_pipeline
+	toColumn: Pipeline.id_pipeline
+
+relationship a39a1a21-4f73-5923-a8c0-366170228844
+	fromColumn: Negocios.id_vendedor
+	toColumn: Vendedor.id_vendedor
+
+relationship 12311583-ee10-5d61-8904-30d66842e87b
+	fromColumn: Negocios.id_fonte
+	toColumn: Fonte.id_fonte
+
+relationship d87c46d5-f850-5bd9-b508-9e5ace5bbd0d
+	fromColumn: Negocios.id_etapa
+	toColumn: Etapa.id_etapa
+
+relationship 983b2ecc-8bae-513b-92f6-42988b339635
+	fromColumn: Negocios.id_motivo_perda
+	toColumn: 'Motivo Perda'.id_motivo
+
+relationship 1ee06756-b8d1-512b-996c-6c7618d87a9d
+	fromColumn: Negocios.id_produto
+	toColumn: Produto.id_produto
+
+relationship dfef94da-3239-5d8b-8586-ed30da58ccdd
+	fromColumn: Negocios.id_forma_pagamento
+	toColumn: 'Forma Pagamento'.id_forma_pagamento
+
+relationship 7c89484c-1fa9-5c5f-8b8e-d0a1ffde442c
+	fromColumn: Metas.inicio_mes
+	toColumn: Calendario.Data
+
+relationship 81da3807-b9d2-5643-9639-5111f0519c74
+	fromColumn: Metas.id_vendedor
+	toColumn: Vendedor.id_vendedor
+
+relationship eb1ba3e4-5354-5b4a-897e-481ccdac1594
+	fromColumn: Metas.id_pipeline
+	toColumn: Pipeline.id_pipeline
+
+relationship b9d33845-c558-518f-bbf8-98ef699d1f5b
+	fromColumn: Conversas.data
+	toColumn: Calendario.Data
+
+relationship ce474794-8375-51f4-bc79-dfc3707b106b
+	fromColumn: Calendario.mes
+	toColumn: 'Eixo Meta'.Ordem
+

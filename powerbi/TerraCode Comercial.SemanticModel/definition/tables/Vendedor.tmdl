@@ -1,0 +1,58 @@
+table Vendedor
+	lineageTag: 56b3299d-636d-4e0d-b3ac-06a2ed3c243c
+
+	column id_vendedor
+		dataType: int64
+		isHidden
+		lineageTag: c6ed41c2-a345-4dd7-bd5b-d6162645fead
+		summarizeBy: none
+		sourceColumn: id_vendedor
+
+	column Vendedor
+		dataType: string
+		lineageTag: f107e72e-fe39-461e-8383-1e6c2e60baec
+		summarizeBy: none
+		sourceColumn: vendedor
+
+	column id_pipeline
+		dataType: int64
+		isHidden
+		lineageTag: 79cf3f89-ba6c-4753-8f34-714ccf3cd084
+		summarizeBy: none
+		sourceColumn: id_pipeline
+
+	column 'Data de entrada'
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: d193d3a6-2736-4996-a481-86f976204744
+		summarizeBy: none
+		sourceColumn: data_entrada
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Data de saída'
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: 79b96f82-732f-43b3-a106-6d4dd4d0b777
+		summarizeBy: none
+		sourceColumn: data_saida
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Ativo
+		dataType: boolean
+		lineageTag: 5a4ed3a5-10e6-46fe-bbef-a3616c0ccbe4
+		summarizeBy: none
+		sourceColumn: ativo
+
+	partition Vendedor = m
+		mode: import
+		source =
+				let
+				    Origem = Csv.Document(File.Contents(PastaDados & "dim_vendedor.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Cabecalhos = Table.PromoteHeaders(Origem, [PromoteAllScalars=true]),
+				    Nulos = Table.ReplaceValue(Cabecalhos, "", null, Replacer.ReplaceValue, Table.ColumnNames(Cabecalhos)),
+				    Tipos = Table.TransformColumnTypes(Nulos, {{"id_vendedor", Int64.Type}, {"vendedor", type text}, {"id_pipeline", Int64.Type}, {"data_entrada", type date}, {"data_saida", type date}, {"ativo", type logical}}, "en-US")
+				in
+				    Tipos
+

@@ -1,0 +1,41 @@
+table Produto
+	lineageTag: 4fd4744d-893a-4652-97fc-7dae5224f2bb
+
+	column id_produto
+		dataType: int64
+		isHidden
+		lineageTag: 6ffaee03-9698-4831-a172-235ccb2323e0
+		summarizeBy: none
+		sourceColumn: id_produto
+
+	column Produto
+		dataType: string
+		lineageTag: 4de7e23e-9544-4c8d-94a0-b9ca1fac2377
+		summarizeBy: none
+		sourceColumn: produto
+
+	column id_pipeline
+		dataType: int64
+		isHidden
+		lineageTag: 1c5ee7b2-4de1-4b48-b347-e8d9ccaa44d0
+		summarizeBy: none
+		sourceColumn: id_pipeline
+
+	column 'Preço de lista'
+		dataType: double
+		formatString: \R\$ #,0
+		lineageTag: 2e4d3490-3923-4b0b-a65e-f346d6e6c1d0
+		summarizeBy: none
+		sourceColumn: preco_lista
+
+	partition Produto = m
+		mode: import
+		source =
+				let
+				    Origem = Csv.Document(File.Contents(PastaDados & "dim_produto.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Cabecalhos = Table.PromoteHeaders(Origem, [PromoteAllScalars=true]),
+				    Nulos = Table.ReplaceValue(Cabecalhos, "", null, Replacer.ReplaceValue, Table.ColumnNames(Cabecalhos)),
+				    Tipos = Table.TransformColumnTypes(Nulos, {{"id_produto", Int64.Type}, {"produto", type text}, {"id_pipeline", Int64.Type}, {"preco_lista", type number}}, "en-US")
+				in
+				    Tipos
+

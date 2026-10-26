@@ -1,0 +1,33 @@
+model Model
+	culture: pt-BR
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: pt-BR
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_ProTooling = ["DevMode"]
+
+annotation PBI_QueryOrder = ["Negocios","Metas","Conversas","Calendario","Pipeline","Etapa","Vendedor","Fonte","Motivo Perda","Produto","Forma Pagamento","Fase Funil","Eixo Meta","Comparativo","Comparativo Dia","Medidas","PastaDados"]
+
+ref table Negocios
+ref table Metas
+ref table Conversas
+ref table Calendario
+ref table Pipeline
+ref table Etapa
+ref table Vendedor
+ref table Fonte
+ref table 'Motivo Perda'
+ref table Produto
+ref table 'Forma Pagamento'
+ref table 'Fase Funil'
+ref table 'Eixo Meta'
+ref table Comparativo
+ref table 'Comparativo Dia'
+ref table Medidas
+
+ref cultureInfo pt-BR
+
