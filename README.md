@@ -6,6 +6,8 @@ A TerraCode Academy é uma escola de tecnologia fictícia com três frentes de v
 
 **[Ver o relatório publicado](https://app.powerbi.com/view?r=eyJrIjoiMWEyOTAwODAtZDdlNS00NjkzLWE0OTAtMjg4NGQxMWNlZGFiIiwidCI6ImQ0Njc3NjUyLTNmZjItNDdkZC04MzdlLWU4NmU3MmE3ZTkzMSJ9)**
 
+![Visão geral do painel TerraCode Comercial](docs/visao-geral.png)
+
 ## O que tem no relatório
 
 | Página | Perguntas que responde |
